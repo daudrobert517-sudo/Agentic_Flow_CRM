@@ -1,0 +1,296 @@
+{% extends 'dashboard_base.html' %}
+
+{% block dashboard_content %}
+<style>
+    .toggle-switch { transition: background-color 0.2s ease; }
+    .toggle-dot { transition: transform 0.2s ease; }
+</style>
+
+{% if sent_count > 0 %}
+<div class="bg-green-50 border border-green-200 text-green-700 text-sm rounded-xl px-4 py-3 mb-5 flex items-center gap-2">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 flex-shrink-0">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    {{ sent_count }} automated email{{ sent_count|pluralize }} sent based on your active rules.
+</div>
+{% endif %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white rounded-2xl p-5 shadow-sm">
+        <h2 class="font-semibold text-gray-800 text-sm mb-4">New Email Template</h2>
+        <form id="templateForm" class="space-y-3">
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Template Name</label>
+                <input type="text" name="name" required
+                    class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Subject</label>
+                <input type="text" name="subject" required
+                    class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors">
+            </div>
+            <div>
+                <label class="block text-xs text-gray-500 mb-1">Body</label>
+                <textarea name="body" rows="5" required
+                    placeholder="Use {% templatetag openvariable %} name {% templatetag closevariable %} and {% templatetag openvariable %} company {% templatetag closevariable %} as placeholders."
+                    class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors resize-none"></textarea>
+                <p class="text-xs text-gray-400 mt-1">
+                    Use <code class="bg-gray-100 px-1 rounded text-purple-600">{% templatetag openvariable %} name {% templatetag closevariable %}</code> and
+                    <code class="bg-gray-100 px-1 rounded text-purple-600">{% templatetag openvariable %} company {% templatetag closevariable %}</code> to personalize.
+                </p>
+            </div>
+            <button type="submit" class="w-full bg-purple-600 text-white text-sm py-2.5 rounded-xl hover:bg-purple-700 transition-colors font-medium">
+                Save Template
+            </button>
+            <p id="templateFormStatus" class="text-xs hidden"></p>
+        </form>
+    </div>
+
+    <div class="bg-white rounded-2xl p-5 shadow-sm lg:col-span-2">
+        <h2 class="font-semibold text-gray-800 text-sm mb-4">Your Templates</h2>
+        {% if templates %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {% for template in templates %}
+            <div class="border border-gray-100 rounded-xl p-4 hover:border-purple-200 hover:bg-purple-50/30 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-purple-600">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                        </svg>
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-medium text-gray-800 truncate">{{ template.name }}</p>
+                        <p class="text-xs text-gray-500 truncate mt-0.5">{{ template.subject }}</p>
+                        <p class="text-xs text-gray-400 mt-1">{{ template.created_at|timesince }} ago</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="flex flex-col items-center justify-center h-40 text-center">
+            <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-400">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                </svg>
+            </div>
+            <p class="text-sm text-gray-500 font-medium">No templates yet</p>
+            <p class="text-xs text-gray-400 mt-1">Create your first template on the left.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white rounded-2xl p-5 shadow-sm mb-6">
+    <h2 class="font-semibold text-gray-800 text-sm mb-1">New Automation Rule</h2>
+    <p class="text-xs text-gray-400 mb-4">Automatically send an email when a lead stays in a stage for a set number of days.</p>
+    <form id="ruleForm" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
+        <div class="md:col-span-2">
+            <label class="block text-xs text-gray-500 mb-1">Rule Name</label>
+            <input type="text" name="name" required placeholder="e.g. Proposal follow-up"
+                class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors">
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">When stage is</label>
+            <select name="trigger_stage" required class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors">
+                {% for stage in stages %}
+                <option value="{{ stage.id }}">{{ stage.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">For (days)</label>
+            <input type="number" name="delay_days" min="1" value="2" required
+                class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors">
+        </div>
+        <div>
+            <label class="block text-xs text-gray-500 mb-1">Send template</label>
+            <select name="template" required class="w-full border border-gray-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors">
+                {% for template in templates %}
+                <option value="{{ template.id }}">{{ template.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="md:col-span-5 bg-purple-600 text-white text-sm py-2.5 rounded-xl hover:bg-purple-700 transition-colors font-medium">
+            Create Rule
+        </button>
+        <p id="ruleFormStatus" class="md:col-span-5 text-xs hidden"></p>
+    </form>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-2xl p-5 shadow-sm">
+        <h2 class="font-semibold text-gray-800 text-sm mb-4">Automation Rules</h2>
+        <div class="space-y-2" id="rulesList">
+            {% for rule in rules %}
+            <div class="flex items-center justify-between border border-gray-100 rounded-xl p-3 hover:border-purple-100 transition-colors">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="w-8 h-8 rounded-lg {% if rule.is_active %}bg-purple-100{% else %}bg-gray-100{% endif %} flex items-center justify-center flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 {% if rule.is_active %}text-purple-600{% else %}text-gray-400{% endif %}">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                        </svg>
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm font-medium text-gray-800 truncate">{{ rule.name }}</p>
+                        <p class="text-xs text-gray-400 truncate">{{ rule.trigger_stage.name }} · {{ rule.delay_days }}d delay · {{ rule.template.name }}</p>
+                    </div>
+                </div>
+                <button type="button"
+                        class="rule-toggle-btn w-10 h-6 rounded-full toggle-switch flex-shrink-0 ml-3 relative {% if rule.is_active %}bg-purple-600{% else %}bg-gray-300{% endif %}"
+                        data-rule-id="{{ rule.id }}">
+                    <span class="toggle-dot absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-sm {% if rule.is_active %}translate-x-[18px]{% else %}translate-x-0.5{% endif %}"></span>
+                </button>
+            </div>
+            {% empty %}
+            <div class="flex flex-col items-center justify-center h-32 text-center">
+                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-400">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                    </svg>
+                </div>
+                <p class="text-sm text-gray-500">No rules yet</p>
+                <p class="text-xs text-gray-400 mt-0.5">Create one above to get started.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl p-5 shadow-sm">
+        <h2 class="font-semibold text-gray-800 text-sm mb-4">Recent Email Activity</h2>
+        <div class="space-y-2 max-h-72 overflow-y-auto">
+            {% for log in logs %}
+            <div class="flex items-start justify-between p-3 rounded-xl hover:bg-gray-50 transition-colors">
+                <div class="flex items-start gap-3 overflow-hidden">
+                    <div class="w-7 h-7 rounded-full {% if log.status == 'sent' %}bg-green-100{% else %}bg-red-100{% endif %} flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5 {% if log.status == 'sent' %}text-green-600{% else %}text-red-500{% endif %}">
+                            {% if log.status == 'sent' %}
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            {% else %}
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            {% endif %}
+                        </svg>
+                    </div>
+                    <div class="overflow-hidden">
+                        <p class="text-sm text-gray-700 truncate font-medium">{{ log.subject }}</p>
+                        <p class="text-xs text-gray-400 truncate">{{ log.lead.name }} · {{ log.sent_at|timesince }} ago</p>
+                    </div>
+                </div>
+                <span class="text-xs px-2 py-0.5 rounded-full flex-shrink-0 ml-2 {% if log.status == 'sent' %}bg-green-50 text-green-600{% else %}bg-red-50 text-red-600{% endif %}">
+                    {{ log.get_status_display }}
+                </span>
+            </div>
+            {% empty %}
+            <div class="flex flex-col items-center justify-center h-32 text-center">
+                <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-400">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+                    </svg>
+                </div>
+                <p class="text-sm text-gray-500">No emails sent yet</p>
+                <p class="text-xs text-gray-400 mt-0.5">Emails appear here once sent.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div id="automation-urls-data"
+     data-create-template-url="{% url 'create_template' %}"
+     data-create-rule-url="{% url 'create_rule' %}"
+     style="display: none;"></div>
+
+<script>
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+const csrftoken = getCookie('csrftoken');
+const urlsData = document.getElementById('automation-urls-data');
+
+document.getElementById('templateForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const statusEl = document.getElementById('templateFormStatus');
+
+    fetch(urlsData.dataset.createTemplateUrl, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken },
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        statusEl.classList.remove('hidden');
+        if (data.success) {
+            statusEl.textContent = 'Template saved successfully.';
+            statusEl.className = 'text-xs text-green-600';
+            setTimeout(() => location.reload(), 700);
+        } else {
+            statusEl.textContent = data.error || 'Something went wrong.';
+            statusEl.className = 'text-xs text-red-600';
+        }
+    });
+});
+
+document.getElementById('ruleForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const statusEl = document.getElementById('ruleFormStatus');
+
+    fetch(urlsData.dataset.createRuleUrl, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrftoken },
+        body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        statusEl.classList.remove('hidden');
+        if (data.success) {
+            statusEl.textContent = 'Rule created successfully.';
+            statusEl.className = 'text-xs text-green-600';
+            setTimeout(() => location.reload(), 700);
+        } else {
+            statusEl.textContent = data.error || 'Something went wrong.';
+            statusEl.className = 'text-xs text-red-600';
+        }
+    });
+});
+
+document.querySelectorAll('.rule-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        const ruleId = this.dataset.ruleId;
+        fetch(`/leads/rules/${ruleId}/toggle/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrftoken },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const dot = this.querySelector('.toggle-dot');
+                const icon = this.closest('.flex').querySelector('svg');
+                const iconWrapper = this.closest('.flex').querySelector('.w-8');
+                if (data.is_active) {
+                    this.classList.remove('bg-gray-300');
+                    this.classList.add('bg-purple-600');
+                    dot.classList.remove('translate-x-0.5');
+                    dot.classList.add('translate-x-[18px]');
+                    iconWrapper.classList.remove('bg-gray-100');
+                    iconWrapper.classList.add('bg-purple-100');
+                    icon.classList.remove('text-gray-400');
+                    icon.classList.add('text-purple-600');
+                } else {
+                    this.classList.remove('bg-purple-600');
+                    this.classList.add('bg-gray-300');
+                    dot.classList.remove('translate-x-[18px]');
+                    dot.classList.add('translate-x-0.5');
+                    iconWrapper.classList.remove('bg-purple-100');
+                    iconWrapper.classList.add('bg-gray-100');
+                    icon.classList.remove('text-purple-600');
+                    icon.classList.add('text-gray-400');
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

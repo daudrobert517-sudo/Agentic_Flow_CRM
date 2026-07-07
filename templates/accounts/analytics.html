@@ -1,0 +1,189 @@
+{% extends 'dashboard_base.html' %}
+
+{% block dashboard_content %}
+<div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-6 mt-2">
+    <div class="bg-white rounded-xl p-4 shadow-sm">
+        <p class="text-xs text-gray-500 mb-1">Total Revenue Won</p>
+        <p class="text-xl font-semibold text-gray-800">${{ total_revenue|floatformat:0 }}</p>
+    </div>
+    <div class="bg-purple-600 rounded-xl p-4 shadow-sm text-white">
+        <p class="text-xs text-purple-100 mb-1">Deals Won</p>
+        <p class="text-xl font-semibold">{{ deals_won }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm">
+        <p class="text-xs text-gray-500 mb-1">Avg Deal Size</p>
+        <p class="text-xl font-semibold text-gray-800">${{ avg_deal_size|floatformat:0 }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 shadow-sm">
+        <p class="text-xs text-gray-500 mb-1">Conversion Rate</p>
+        <p class="text-xl font-semibold text-gray-800">{{ conversion_rate }}%</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+    <div class="lg:col-span-2 bg-white rounded-2xl p-5 shadow-sm">
+        <h2 class="font-semibold text-gray-800 text-sm mb-4">Revenue Won Over Time</h2>
+        <div id="noChartMsg" class="hidden items-center justify-center h-32">
+            <p class="text-sm text-gray-400">No won deals yet. Close some deals to see trends.</p>
+        </div>
+        <canvas id="revenueChart" height="120"></canvas>
+    </div>
+
+    <div class="bg-white rounded-2xl p-5 shadow-sm">
+        <h2 class="font-semibold text-gray-800 text-sm mb-4">Pipeline Funnel</h2>
+        <div class="space-y-3" id="funnelContainer">
+            {% for item in funnel_data %}
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-xs text-gray-600">{{ item.name }}</span>
+                    <span class="text-xs font-semibold text-gray-800">{{ item.count }}</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2">
+                    <div class="funnel-bar h-2 rounded-full transition-all duration-500"
+                         data-width="{% widthratio item.count total_leads 100 %}"
+                         data-color="{{ item.color }}">
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-2xl p-5 shadow-sm">
+    <h2 class="font-semibold text-gray-800 text-sm mb-4">Lead Source Performance</h2>
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="text-xs text-gray-400 border-b border-gray-100">
+                    <th class="text-left pb-3 font-medium">Source</th>
+                    <th class="text-right pb-3 font-medium">Total Leads</th>
+                    <th class="text-right pb-3 font-medium">Won</th>
+                    <th class="text-right pb-3 font-medium">Revenue</th>
+                    <th class="text-right pb-3 font-medium">Win Rate</th>
+                    <th class="pb-3"></th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-50">
+                {% for stat in source_stats %}
+                <tr>
+                    <td class="py-3 font-medium text-gray-800">{{ stat.label }}</td>
+                    <td class="py-3 text-right text-gray-600">{{ stat.total }}</td>
+                    <td class="py-3 text-right text-gray-600">{{ stat.won }}</td>
+                    <td class="py-3 text-right text-gray-600">${{ stat.value|floatformat:0 }}</td>
+                    <td class="py-3 text-right font-semibold
+                        {% if stat.rate >= 20 %}text-green-600
+                        {% elif stat.rate >= 10 %}text-yellow-600
+                        {% else %}text-red-500{% endif %}">
+                        {{ stat.rate }}%
+                    </td>
+                    <td class="py-3 pl-4">
+                        <div class="w-20 bg-gray-100 rounded-full h-1.5">
+                            <div class="h-1.5 rounded-full bg-purple-500"
+                                 data-rate="{{ stat.rate }}"
+                                 id="source-bar-{{ forloop.counter }}">
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="py-6 text-center text-gray-400 text-sm">No data yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="chart-config" data-has-data="{% if revenue_labels %}true{% else %}false{% endif %}" style="display:none;"></div>
+
+{{ revenue_labels|json_script:"revenue-labels-data" }}
+{{ revenue_data|json_script:"revenue-data" }}
+{{ won_counts|json_script:"won-counts-data" }}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.querySelectorAll('.funnel-bar').forEach(bar => {
+    bar.style.width = bar.dataset.width + '%';
+    bar.style.backgroundColor = bar.dataset.color;
+});
+
+document.querySelectorAll('[data-rate]').forEach(bar => {
+    bar.style.width = bar.dataset.rate + '%';
+});
+
+const hasData = document.getElementById('chart-config').dataset.hasData === 'true';
+
+if (hasData) {
+    const revenueLabels = JSON.parse(document.getElementById('revenue-labels-data').textContent);
+    const revenueData = JSON.parse(document.getElementById('revenue-data').textContent);
+    const wonCounts = JSON.parse(document.getElementById('won-counts-data').textContent);
+
+    new Chart(document.getElementById('revenueChart'), {
+        type: 'line',
+        data: {
+            labels: revenueLabels,
+            datasets: [
+                {
+                    label: 'Revenue ($)',
+                    data: revenueData,
+                    borderColor: '#a855f7',
+                    backgroundColor: 'rgba(168, 85, 247, 0.08)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#a855f7',
+                    pointRadius: 4,
+                    yAxisID: 'y',
+                },
+                {
+                    label: 'Deals Won',
+                    data: wonCounts,
+                    borderColor: '#e9d5ff',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    borderDash: [4, 4],
+                    pointBackgroundColor: '#c084fc',
+                    pointRadius: 3,
+                    yAxisID: 'y1',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { font: { size: 11 }, boxWidth: 12, padding: 12 }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    position: 'left',
+                    ticks: {
+                        font: { size: 10 },
+                        callback: value => '$' + value.toLocaleString()
+                    }
+                },
+                y1: {
+                    beginAtZero: true,
+                    position: 'right',
+                    grid: { drawOnChartArea: false },
+                    ticks: { font: { size: 10 }, stepSize: 1 }
+                }
+            }
+        }
+    });
+} else {
+    document.getElementById('revenueChart').style.display = 'none';
+    const msg = document.getElementById('noChartMsg');
+    msg.classList.remove('hidden');
+    msg.classList.add('flex');
+}
+</script>
+{% endblock %}
