@@ -166,17 +166,23 @@ Visit `http://127.0.0.1:8000/accounts/signup/` to create your account and explor
 
 ## Screenshots
 
-> Dashboard with summary cards, stage chart, calendar, and activity feed
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
 
-> Pipeline Kanban board with color-coded stage cards and drag-and-drop
+### Pipeline Board
+![Pipeline](screenshots/pipeline.png)
 
-> AI Assistant with real pipeline context and quick prompt cards
+### AI Assistant
+![AI Assistant](screenshots/ai-assistant.png)
 
-> Email Automation with template builder and automation rules
+### Email Automation
+![Email Automation](screenshots/email_automation.png)
 
-> Analytics with revenue trend chart and source performance table
+### Analytics
+![Analytics](screenshots/analytics.png)
 
-> Login page with split-panel layout and feature highlights
+### Login
+![Login](screenshots/login.png)
 
 ---
 
