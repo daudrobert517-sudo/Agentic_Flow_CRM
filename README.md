@@ -167,22 +167,22 @@ Visit `http://127.0.0.1:8000/accounts/signup/` to create your account and explor
 ## Screenshots
 
 ### Dashboard
-![Dashboard](screenshots/dashboard.png)
+![Dashboard](screenshots/Dashboard.png)
 
 ### Pipeline Board
-![Pipeline](screenshots/pipeline.png)
+![Pipeline](screenshots/Pipeline.png)
 
 ### AI Assistant
-![AI Assistant](screenshots/ai-assistant.png)
+![AI Assistant](screenshots/Ai_assistant.png)
 
 ### Email Automation
-![Email Automation](screenshots/email_automation.png)
+![Email Automation](screenshots/Email_automation.png)
 
 ### Analytics
-![Analytics](screenshots/analytics.png)
+![Analytics](screenshots/Analytics.png)
 
 ### Login
-![Login](screenshots/login.png)
+![Login](screenshots/Login.png)
 
 ---
 
