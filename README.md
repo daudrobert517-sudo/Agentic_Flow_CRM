@@ -2,7 +2,7 @@
 
 An AI-powered Sales Pipeline CRM built with Django. Manage leads, automate emails, and get real-time sales advice from an AI assistant trained on your actual pipeline data.
 
-![Dashboard Preview](https://via.placeholder.com/1200x600/150f24/a855f7?text=AgenticFlow+CRM+Dashboard)
+![Dashboard Preview](screenshots/Dashboard.png)
 
 ---
 
@@ -128,3 +128,62 @@ pip install -r requirements.txt
 
 GROQ_API_KEY=your_groq_api_key_here
 
+**5. Run migrations**
+```bash
+python manage.py migrate
+```
+
+**6. Create a superuser**
+```bash
+python manage.py createsuperuser
+```
+
+**7. Seed the database with realistic fake data**
+```bash
+python manage.py seed_leads --count 100
+```
+
+**8. Start the development server**
+```bash
+python manage.py runserver
+```
+
+Visit `http://127.0.0.1:8000/accounts/signup/` to create your account and explore the app.
+
+---
+
+## Key Design Decisions
+
+**Owner-scoped security:** Every database query filters by `owner=request.user`, so users can only access their own data. This applies to AJAX endpoints too, including the drag-and-drop stage update and email send endpoints.
+
+**No external task queue:** Email automation rules are checked on page visit rather than running a background scheduler. This keeps the stack simple for a portfolio project while demonstrating the full automation logic: delay calculation, template rendering, duplicate prevention, and logging.
+
+**Groq over OpenAI:** The AI assistant uses Groq's free tier instead of a paid API, making this project fully reproducible without any cost.
+
+**json_script for safe data passing:** All Python data passed into JavaScript uses Django's `json_script` filter rather than inline template tags, avoiding both XSS vulnerabilities and VS Code false-positive warnings.
+
+---
+
+## Screenshots
+
+> Dashboard with summary cards, stage chart, calendar, and activity feed
+
+> Pipeline Kanban board with color-coded stage cards and drag-and-drop
+
+> AI Assistant with real pipeline context and quick prompt cards
+
+> Email Automation with template builder and automation rules
+
+> Analytics with revenue trend chart and source performance table
+
+> Login page with split-panel layout and feature highlights
+
+---
+
+## License
+
+MIT License. Feel free to use this project as a reference or starting point for your own CRM.
+
+---
+
+Built by [David Robert](https://github.com/daudrobert517-sudo)
