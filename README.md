@@ -173,7 +173,7 @@ Visit `http://127.0.0.1:8000/accounts/signup/` to create your account and explor
 ![Pipeline](screenshots/Pipeline.png)
 
 ### AI Assistant
-![AI Assistant](screenshots/Ai_assistant.png)
+![AI Assistant](screenshots/AI_assistant.png)
 
 ### Email Automation
 ![Email Automation](screenshots/Email_automation.png)
